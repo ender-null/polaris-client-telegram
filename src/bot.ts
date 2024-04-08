@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import TelegramBot, { Message as TgMessage } from 'node-telegram-bot-api';
 import { Conversation, Extra, Message, User, WSInit } from './types';
 import { Config } from './config';
+import { logger } from './utils';
 
 export class Bot {
   websocket: WebSocket;
@@ -29,7 +30,7 @@ export class Bot {
       config,
     };
     this.websocket.send(JSON.stringify(data, null, 4));
-    console.log('Connected as @%s', me.username);
+    logger.info(`Connected as @${me.username}`);
   }
 
   convertMessage(msg: TgMessage) {

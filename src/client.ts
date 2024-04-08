@@ -2,12 +2,17 @@ import WebSocket from 'ws';
 import TelegramBot from 'node-telegram-bot-api';
 import { Bot } from './bot';
 import { WSMessage } from './types';
+import { logger } from './utils';
 
 let bot: Bot;
 let ws: WebSocket;
 
+logger.info(`SERVER: ${process.env.SERVER}`)
+logger.info(`TOKEN: ${process.env.TOKEN}`)
+logger.info(`CONFIG: ${process.env.CONFIG}`)
+
 const close = () => {
-  console.log('close server');
+  logger.info(`close server`);
   ws.terminate();
   process.exit();
 };
@@ -15,7 +20,7 @@ const close = () => {
 process.on('SIGINT', () => close());
 process.on('SIGTERM', () => close());
 process.on('exit', () => {
-  console.log('exit process');
+  logger.info(`exit process`);
 });
 
 // Create a bot that uses 'polling' to fetch new updates
@@ -33,15 +38,16 @@ telegramBot.on('message', (message) => {
 });
 
 const poll = () => {
+  logger.info('starting polling...');
   ws = new WebSocket(process.env.SERVER);
   bot = new Bot(ws, telegramBot);
 
   ws.on('error', async (error: WebSocket.ErrorEvent) => {
     if (error['code'] === 'ECONNREFUSED') {
-      console.log('Waiting for server to be available...');
+      logger.info(`Waiting for server to be available...`);
       setTimeout(poll, 5000);
     } else {
-      console.error('%s', error['code']);
+      logger.info(error['code']);
     }
   });
 
@@ -49,16 +55,16 @@ const poll = () => {
 
   ws.on('close', (code) => {
     if (code === 1005) {
-      console.log('disconnected');
+      logger.info(`disconnected`);
     } else if (code === 1006) {
-      console.log('terminated');
+      logger.info(`terminated`);
     }
     //process.exit();
   });
 
   ws.on('message', (data: string) => {
     const json = JSON.parse(data);
-    console.log('message: %s', data);
+    logger.info(data);
     if (json.type === 'message') {
       telegramBot.sendMessage(json.message.conversation.id, json.message.content, {
         parse_mode: json.message.extra.format,
