@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import TelegramBot from 'node-telegram-bot-api';
 import { Bot } from './bot';
 import { WSMessage } from './types';
-import { logger } from './utils';
+import { catchException, logger } from './utils';
 
 let bot: Bot;
 let ws: WebSocket;
@@ -70,14 +70,18 @@ const poll = () => {
   });
 
   ws.on('message', (data: string) => {
-    const msg = JSON.parse(data);
-    logger.info(data);
-    if (msg.type === 'message') {
-      telegramBot.sendMessage(msg.message.conversation.id, msg.message.content, {
-        parse_mode: msg.message.extra?.format,
-        reply_markup: msg.message.extra?.replyMarkup,
-        reply_to_message_id: msg.message.reply?.id,
-      });
+    try {
+      const msg = JSON.parse(data);
+      logger.info(data);
+      if (msg.type === 'message') {
+        telegramBot.sendMessage(msg.message.conversation.id, msg.message.content, {
+          parse_mode: msg.message.extra?.format,
+          reply_markup: msg.message.extra?.replyMarkup,
+          reply_to_message_id: msg.message.reply?.id,
+        });
+      }
+    } catch (error) {
+      catchException(error);
     }
   });
 };

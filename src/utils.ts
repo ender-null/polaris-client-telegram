@@ -1,6 +1,19 @@
 import winston, { createLogger, transports, format as winstonFormat } from 'winston';
 import 'winston-daily-rotate-file';
 
+export const catchException = (exception: Error): Error => {
+  logger.error(`Catch exception: ${exception.message}`);
+  return exception;
+};
+
+export const replaceHtml = (text: string): string => {
+  if (text) {
+    text = text.replace(new RegExp('<', 'gim'), '&lt;');
+    text = text.replace(new RegExp('>', 'gim'), '&gt;');
+  }
+  return text;
+};
+
 export const loggerFormat = winstonFormat.printf(({ level, message, timestamp, ...metadata }) => {
   let msg = `${timestamp} [${level}]: ${message} `;
   if (metadata && Object.keys(metadata).length > 0) {
