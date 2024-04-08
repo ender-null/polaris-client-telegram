@@ -156,7 +156,7 @@ jobs:
           TOKEN: op://end.works/Telegram Test Bot/token
 
       - name: Run container on host
-        uses: appleboy/ssh-action@v0.1.10
+        uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ env.HOST }}
           port: ${{ env.PORT }}
