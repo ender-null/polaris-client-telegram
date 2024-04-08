@@ -14,6 +14,15 @@ export const replaceHtml = (text: string): string => {
   return text;
 };
 
+export const isInt = (number: number | string): boolean => {
+  if (typeof number == 'number') {
+    return true;
+  } else if (typeof number != 'string') {
+    return false;
+  }
+  return !isNaN(parseFloat(number));
+};
+
 export const loggerFormat = winstonFormat.printf(({ level, message, timestamp, ...metadata }) => {
   let msg = `${timestamp} [${level}]: ${message} `;
   if (metadata && Object.keys(metadata).length > 0) {

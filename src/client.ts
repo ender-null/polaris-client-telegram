@@ -53,7 +53,7 @@ const poll = () => {
       logger.info(`Waiting for server to be available...`);
       setTimeout(poll, 5000);
     } else {
-      logger.error(error['code']);
+      logger.error(error);
     }
   });
 
@@ -74,11 +74,7 @@ const poll = () => {
       const msg = JSON.parse(data);
       logger.info(JSON.stringify(msg, null, 4));
       if (msg.type === 'message') {
-        telegramBot.sendMessage(msg.message.conversation.id, msg.message.content, {
-          parse_mode: msg.message.extra?.format,
-          reply_markup: msg.message.extra?.replyMarkup,
-          reply_to_message_id: msg.message.reply?.id,
-        });
+        bot.sendMessage(msg.message);
       }
     } catch (error) {
       catchException(error);

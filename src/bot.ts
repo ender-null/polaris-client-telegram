@@ -1,8 +1,9 @@
 import WebSocket from 'ws';
-import TelegramBot, { Message as TgMessage } from 'node-telegram-bot-api';
+import TelegramBot, { ChatAction, ParseMode } from 'node-telegram-bot-api';
 import { Conversation, Extra, Message, User, WSInit, WSPing } from './types';
 import { Config } from './config';
-import { logger } from './utils';
+import { isInt, logger } from './utils';
+import { Stream } from 'node:stream';
 
 export class Bot {
   websocket: WebSocket;
@@ -43,7 +44,7 @@ export class Bot {
     this.websocket.send(JSON.stringify(data, null, 4));
   }
 
-  convertMessage(msg: TgMessage) {
+  convertMessage(msg: TelegramBot.Message) {
     const id = msg['id'];
     const extra: Extra = {
       originalMessage: msg,
@@ -58,34 +59,21 @@ export class Bot {
     if (msg.text) {
       content = msg.text;
       type = 'text';
-    } else {
-      type = 'unsupported';
-    }
-
-    /*if (msg.content._ == 'messageText') {
-      content = msg.content.text.text;
-      type = 'text';
-      if (Array.isArray(msg.content.text['entities'])) {
-        for (const entity of msg.content.text.entities) {
-          if (entity.type._ == 'textEntityTypeUrl') {
+      if (Array.isArray(msg.entities)) {
+        for (const entity of msg.entities) {
+          if (entity.type == 'url') {
             if (!Array.isArray(extra.urls)) {
               extra.urls = [];
             }
             extra.urls.push(content.slice(entity.offset, entity.offset + entity.length));
           }
-          if (entity.type._ == 'textEntityTypeMention') {
+          if (entity.type == 'mention') {
             if (!Array.isArray(extra.mentions)) {
               extra.mentions = [];
             }
             extra.mentions.push(content.slice(entity.offset, entity.offset + entity.length));
           }
-          if (entity.type._ == 'textEntityTypeMentionName') {
-            if (!Array.isArray(extra.mentions)) {
-              extra.mentions = [];
-            }
-            extra.mentions.push(entity['user_id']);
-          }
-          if (entity.type._ == 'textEntityTypeHashtag') {
+          if (entity.type == 'hashtag') {
             if (!Array.isArray(extra.hashtags)) {
               extra.hashtags = [];
             }
@@ -93,52 +81,34 @@ export class Bot {
           }
         }
       }
-    } else if (msg.content._ == 'messagePhoto') {
-      content = msg.content.photo.sizes[0].photo.remote.id;
+    } else if (msg.photo) {
+      content = msg.photo[0].file_id;
       type = 'photo';
-      if (msg.content.caption) {
-        extra.caption = msg.content.caption.text;
-      }
-    } else if (msg.content._ == 'messageAnimation') {
-      content = msg.content.animation.animation.remote.id;
+    } else if (msg.animation) {
+      content = msg.animation[0].file_id;
       type = 'animation';
-      if (msg.content.caption) {
-        extra.caption = msg.content.caption.text;
-      }
-    } else if (msg.content._ == 'messageDocument') {
-      content = msg.content.document.document.remote.id;
+    } else if (msg.document) {
+      content = msg.document[0].file_id;
       type = 'document';
-      if (msg.content.caption) {
-        extra.caption = msg.content.caption.text;
-      }
-    } else if (msg.content._ == 'messageAudio') {
-      content = msg.content.audio.audio.remote.id;
+    } else if (msg.audio) {
+      content = msg.audio[0].file_id;
       type = 'audio';
-      if (msg.content.caption) {
-        extra.caption = msg.content.caption.text;
-      }
-    } else if (msg.content._ == 'messageVideo') {
-      content = msg.content.video.video.remote.id;
-      type = 'video';
-      if (msg.content.caption) {
-        extra.caption = msg.content.caption.text;
-      }
-    } else if (msg.content._ == 'messageVoiceNote') {
-      content = msg.content.voice_note.voice.remote.id;
-      type = 'voice';
-      if (msg.content.caption) {
-        extra.caption = msg.content.caption.text;
-      }
-    } else if (msg.content._ == 'messageSticker') {
-      content = msg.content.sticker.sticker.remote.id;
+    } else if (msg.video) {
+      content = msg.video[0].file_id;
+      type = 'audio';
+    } else if (msg.video_note) {
+      content = msg.video_note[0].file_id;
+      type = 'video_note';
+    } else if (msg.sticker) {
+      content = msg.sticker[0].file_id;
       type = 'sticker';
-    } else if (msg.content._ == 'messageUnsupported') {
-      content = 'Message content that is not supported by the client';
-      type = 'unsupported';
     } else {
-      content = msg.content._;
       type = 'unsupported';
-    }*/
+    }
+
+    if (msg.caption) {
+      extra.caption = msg.caption;
+    }
 
     const reply: Message = null;
     /*if (msg['reply_to_message_id'] != undefined && msg['reply_to_message_id'] > 0 && !ignoreReply) {
@@ -155,5 +125,86 @@ export class Bot {
     }
     const date = msg['date'];
     return new Message(id, conversation, sender, content, type, date, reply, extra);
+  }
+
+  async sendChatAction(conversationId: number, type = 'text'): Promise<boolean> {
+    let action: ChatAction = 'typing';
+
+    if (type == 'photo') {
+      action = 'upload_photo';
+    } else if (type == 'document') {
+      action = 'upload_document';
+    } else if (type == 'video') {
+      action = 'upload_video';
+    } else if (type == 'voice' || type == 'audio') {
+      action = 'record_voice';
+    } else if (type == 'location' || type == 'venue') {
+      action = 'find_location';
+    } else if (type == 'cancel') {
+      action = null;
+    }
+
+    return await this.bot.sendChatAction(conversationId, action);
+  }
+
+  async sendMessage(msg: Message): Promise<TelegramBot.Message> {
+    await this.sendChatAction(+msg.conversation.id, msg.type);
+    if (msg.type == 'text') {
+      if (!msg.content || (typeof msg.content == 'string' && msg.content.length == 0)) {
+        return null;
+      }
+      let preview = false;
+      if (msg.extra && 'preview' in msg.extra) {
+        preview = msg.extra.preview;
+      }
+      this.bot.sendMessage(msg.conversation.id, msg.content, {
+        parse_mode: msg.extra?.format as ParseMode,
+        reply_markup: msg.extra?.replyMarkup,
+        reply_to_message_id: msg.reply?.id as number,
+        disable_web_page_preview: !preview,
+      });
+    } else if (msg.type == 'photo') {
+      this.bot.sendPhoto(msg.conversation.id, this.getInputFile(msg.content), {
+        caption: msg.extra?.caption,
+      });
+    } else if (msg.type == 'animation') {
+      this.bot.sendAnimation(msg.conversation.id, this.getInputFile(msg.content), {
+        caption: msg.extra?.caption,
+      });
+    } else if (msg.type == 'audio') {
+      this.bot.sendAudio(msg.conversation.id, this.getInputFile(msg.content), {
+        caption: msg.extra?.caption,
+      });
+    } else if (msg.type == 'document') {
+      this.bot.sendDocument(msg.conversation.id, this.getInputFile(msg.content), {
+        caption: msg.extra?.caption,
+      });
+    } else if (msg.type == 'video') {
+      this.bot.sendVideo(msg.conversation.id, this.getInputFile(msg.content), {
+        caption: msg.extra?.caption,
+      });
+    } else if (msg.type == 'voice') {
+      this.bot.sendVoice(msg.conversation.id, this.getInputFile(msg.content), {
+        caption: msg.extra?.caption,
+      });
+    } else if (msg.type == 'sticker') {
+      this.bot.sendSticker(msg.conversation.id, this.getInputFile(msg.content));
+    } else if (msg.type == 'forward') {
+      this.bot.forwardMessage(msg.extra.conversation, msg.conversation.id, +msg.extra.message)
+    }
+
+    return null;
+  }
+
+  getInputFile(content: string): string | Stream | Buffer {
+    if (content.startsWith('/') || content.startsWith('C:\\')) {
+      return Buffer.from(content);
+    } else if (content.startsWith('http')) {
+      return content;
+    } else if (isInt(content)) {
+      return content;
+    } else {
+      return content;
+    }
   }
 }
