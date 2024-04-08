@@ -178,3 +178,7 @@ export interface WSMessage extends WSData {
   type: 'message';
   message: Message;
 }
+
+export interface WSPing extends WSData {
+  type: 'ping';
+}

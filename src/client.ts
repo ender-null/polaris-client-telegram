@@ -6,13 +6,14 @@ import { logger } from './utils';
 
 let bot: Bot;
 let ws: WebSocket;
+let pingInterval;
 
-logger.info(`SERVER: ${process.env.SERVER}`)
-logger.info(`TOKEN: ${process.env.TOKEN}`)
-logger.info(`CONFIG: ${process.env.CONFIG}`)
+logger.debug(`SERVER: ${process.env.SERVER}`);
+logger.debug(`TOKEN: ${process.env.TOKEN}`);
+logger.debug(`CONFIG: ${process.env.CONFIG}`);
 
 const close = () => {
-  logger.info(`close server`);
+  logger.warn(`Close server`);
   ws.terminate();
   process.exit();
 };
@@ -20,7 +21,7 @@ const close = () => {
 process.on('SIGINT', () => close());
 process.on('SIGTERM', () => close());
 process.on('exit', () => {
-  logger.info(`exit process`);
+  logger.warn(`Exit process`);
 });
 
 // Create a bot that uses 'polling' to fetch new updates
@@ -38,16 +39,21 @@ telegramBot.on('message', (message) => {
 });
 
 const poll = () => {
-  logger.info('starting polling...');
+  logger.info('Starting polling...');
   ws = new WebSocket(process.env.SERVER);
   bot = new Bot(ws, telegramBot);
+
+  clearInterval(pingInterval);
+  pingInterval = setInterval(() => {
+    bot.ping();
+  }, 30000);
 
   ws.on('error', async (error: WebSocket.ErrorEvent) => {
     if (error['code'] === 'ECONNREFUSED') {
       logger.info(`Waiting for server to be available...`);
       setTimeout(poll, 5000);
     } else {
-      logger.info(error['code']);
+      logger.error(error['code']);
     }
   });
 
@@ -55,11 +61,12 @@ const poll = () => {
 
   ws.on('close', (code) => {
     if (code === 1005) {
-      logger.info(`disconnected`);
+      logger.warn(`Disconnected`);
     } else if (code === 1006) {
-      logger.info(`terminated`);
+      logger.warn(`Terminated`);
     }
-    //process.exit();
+    clearInterval(pingInterval);
+    process.exit();
   });
 
   ws.on('message', (data: string) => {

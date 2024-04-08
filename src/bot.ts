@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
 import TelegramBot, { Message as TgMessage } from 'node-telegram-bot-api';
-import { Conversation, Extra, Message, User, WSInit } from './types';
+import { Conversation, Extra, Message, User, WSInit, WSPing } from './types';
 import { Config } from './config';
 import { logger } from './utils';
 
@@ -31,6 +31,16 @@ export class Bot {
     };
     this.websocket.send(JSON.stringify(data, null, 4));
     logger.info(`Connected as @${me.username}`);
+  }
+
+  ping() {
+    logger.debug('ping');
+    const data: WSPing = {
+      bot: 'polaris',
+      platform: 'telegram',
+      type: 'ping',
+    };
+    this.websocket.send(JSON.stringify(data, null, 4));
   }
 
   convertMessage(msg: TgMessage) {
