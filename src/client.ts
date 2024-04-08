@@ -70,13 +70,13 @@ const poll = () => {
   });
 
   ws.on('message', (data: string) => {
-    const json = JSON.parse(data);
+    const msg = JSON.parse(data);
     logger.info(data);
-    if (json.type === 'message') {
-      telegramBot.sendMessage(json.message.conversation.id, json.message.content, {
-        parse_mode: json.message.extra.format,
-        reply_markup: json.message.extra.replyMarkup,
-        reply_to_message_id: json.message.reply.id,
+    if (msg.type === 'message') {
+      telegramBot.sendMessage(msg.message.conversation.id, msg.message.content, {
+        parse_mode: msg.message.extra?.format,
+        reply_markup: msg.message.extra?.replyMarkup,
+        reply_to_message_id: msg.message.reply?.id,
       });
     }
   });
