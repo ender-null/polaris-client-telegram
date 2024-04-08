@@ -35,7 +35,7 @@ telegramBot.on('message', (message) => {
     type: 'message',
     message: msg,
   };
-  ws.send(JSON.stringify(data, null, 4));
+  ws.send(JSON.stringify(data));
 });
 
 const poll = () => {
@@ -72,7 +72,7 @@ const poll = () => {
   ws.on('message', (data: string) => {
     try {
       const msg = JSON.parse(data);
-      logger.info(data);
+      logger.info(JSON.stringify(msg, null, 4));
       if (msg.type === 'message') {
         telegramBot.sendMessage(msg.message.conversation.id, msg.message.content, {
           parse_mode: msg.message.extra?.format,
