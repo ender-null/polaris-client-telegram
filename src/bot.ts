@@ -6,6 +6,7 @@ import { isInt, logger } from './utils';
 import { Stream } from 'node:stream';
 
 export class Bot {
+  user: User
   websocket: WebSocket;
   bot: TelegramBot;
 
@@ -16,28 +17,29 @@ export class Bot {
 
   async init() {
     const me = await this.bot.getMe();
+    this.user = {
+      id: me.id,
+      firstName: me.first_name,
+      lastName: null,
+      username: me.username,
+      isBot: me.is_bot,
+    }
     const config: Config = JSON.parse(process.env.CONFIG);
     const data: WSInit = {
-      bot: 'polaris',
+      bot: me.username,
       platform: 'telegram',
       type: 'init',
-      user: {
-        id: me.id,
-        firstName: me.first_name,
-        lastName: null,
-        username: me.username,
-        isBot: me.is_bot,
-      },
+      user: this.user,
       config,
     };
     this.websocket.send(JSON.stringify(data, null, 4));
-    logger.info(`Connected as @${me.username}`);
+    logger.info(`Connected as @${data.user.username}`);
   }
 
   ping() {
     logger.debug('ping');
     const data: WSPing = {
-      bot: 'polaris',
+      bot: this.user.username,
       platform: 'telegram',
       type: 'ping',
     };
@@ -95,7 +97,7 @@ export class Bot {
       type = 'audio';
     } else if (msg.video) {
       content = msg.video[0].file_id;
-      type = 'audio';
+      type = 'video';
     } else if (msg.video_note) {
       content = msg.video_note[0].file_id;
       type = 'video_note';
