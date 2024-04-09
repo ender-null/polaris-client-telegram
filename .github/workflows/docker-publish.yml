@@ -154,6 +154,7 @@ jobs:
           SERVER: op://end.works/Telegram Test Bot/server
           CONFIG: op://end.works/Telegram Test Bot/config
           TOKEN: op://end.works/Telegram Test Bot/token
+          MONGODB_URI: op://end.works/Telegram Test Bot/mongodb uri
 
       - name: Run container on host
         uses: appleboy/ssh-action@v1.0.3
@@ -166,7 +167,7 @@ jobs:
             docker pull ghcr.io/${{ github.repository }}:${{ env.TAG }}
             docker stop ${{ env.CONTAINER_NAME }}
             docker rm ${{ env.CONTAINER_NAME }}
-            docker run -e SERVER=${{ env.SERVER }} -e CONFIG='${{ env.CONFIG }}' -e TOKEN=${{ env.TOKEN }} -ti -d --restart unless-stopped --name ${{ env.CONTAINER_NAME }} ghcr.io/${{ github.repository }}:${{ env.TAG }}
+            docker run -e SERVER=${{ env.SERVER }} -e CONFIG='${{ env.CONFIG }}' -e TOKEN=${{ env.TOKEN }} -e MONGODB_URI=${{ env.MONGODB_URI }} -ti -d --restart unless-stopped --name ${{ env.CONTAINER_NAME }} ghcr.io/${{ github.repository }}:${{ env.TAG }}
 
       - name: Generate summary
         id: generate-summary
