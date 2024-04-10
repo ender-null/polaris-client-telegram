@@ -1,4 +1,4 @@
-FROM ghcr.io/ender-null/polaris-base:latest as builder
+FROM node:current-slim as builder
 
 RUN mkdir -p /usr/src/app
 
@@ -13,7 +13,7 @@ COPY . .
 
 RUN yarn run build
 
-FROM ghcr.io/ender-null/polaris-base:latest as release
+FROM node:current-slim as release
 
 LABEL org.opencontainers.image.source https://github.com/ender-null/polaris-client-telegram
 
