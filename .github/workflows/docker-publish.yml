@@ -151,10 +151,10 @@ jobs:
           USERNAME: op://end.works/wired/username
           KEY: op://end.works/SSH Key/private key
           FINGERPRINT: op://end.works/SSH Key/fingerprint
-          SERVER: op://end.works/Telegram Test Bot/server
-          CONFIG: op://end.works/Telegram Test Bot/config
-          TOKEN: op://end.works/Telegram Test Bot/token
-          MONGODB_URI: op://end.works/Telegram Test Bot/mongodb uri
+          SERVER: op://end.works/Peto-tan Config/server
+          CONFIG: op://end.works/Peto-tan Config/config telegram
+          TOKEN: op://end.works/Peto-tan Config/token
+          MONGODB_URI: op://end.works/Peto-tan Config/mongodb uri
 
       - name: Run container on host
         uses: appleboy/ssh-action@v1.0.3
