@@ -48,7 +48,6 @@ export class Bot {
   }
 
   broadcast(target: string | string[], chatId: string, content: string, type: string, extra?: Extra) {
-    console.log('broadcast');
     const data: WSBroadcast = {
       bot: this.user.username,
       platform: 'telegram',
