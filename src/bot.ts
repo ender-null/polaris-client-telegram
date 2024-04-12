@@ -1,12 +1,13 @@
 import WebSocket from 'ws';
 import TelegramBot, { ChatAction, ParseMode } from 'node-telegram-bot-api';
-import { Conversation, Extra, Message, User, WSInit, WSPing } from './types';
+import { Conversation, Extra, Message, User, WSBroadcast, WSInit, WSPing } from './types';
 import { Config } from './config';
 import { isInt, logger } from './utils';
 import { Stream } from 'node:stream';
 
 export class Bot {
-  user: User
+  user: User;
+  config: Config;
   websocket: WebSocket;
   bot: TelegramBot;
 
@@ -23,14 +24,14 @@ export class Bot {
       lastName: null,
       username: me.username,
       isBot: me.is_bot,
-    }
-    const config: Config = JSON.parse(process.env.CONFIG);
+    };
+    this.config = JSON.parse(process.env.CONFIG);
     const data: WSInit = {
       bot: me.username,
       platform: 'telegram',
       type: 'init',
       user: this.user,
-      config,
+      config: this.config,
     };
     this.websocket.send(JSON.stringify(data, null, 4));
     logger.info(`Connected as @${data.user.username}`);
@@ -46,14 +47,33 @@ export class Bot {
     this.websocket.send(JSON.stringify(data, null, 4));
   }
 
+  broadcast(target: string | string[], chatId: string, content: string, type: string, extra?: Extra) {
+    console.log('broadcast');
+    const data: WSBroadcast = {
+      bot: this.user.username,
+      platform: 'telegram',
+      type: 'broadcast',
+      target: target,
+      message: {
+        conversation: new Conversation(chatId),
+        content,
+        type,
+        extra,
+      },
+    };
+    this.websocket.send(JSON.stringify(data, null, 4));
+  }
+
   convertMessage(msg: TelegramBot.Message) {
-    const id = msg['id'];
+    const id = msg.message_id;
     const extra: Extra = {
       originalMessage: msg,
     };
 
     const conversation = new Conversation(msg.chat.id, msg.chat.title);
-    const sender = new User(msg.from.id, msg.from.first_name, msg.from.last_name, msg.from.username, msg.from.is_bot);
+    const sender = msg.from
+      ? new User(msg.from.id, msg.from.first_name, msg.from.last_name, msg.from.username, msg.from.is_bot)
+      : conversation;
 
     let content;
     let type;
@@ -116,14 +136,8 @@ export class Bot {
     /*if (msg['reply_to_message_id'] != undefined && msg['reply_to_message_id'] > 0 && !ignoreReply) {
       reply = await this.getMessage(msg['chat_id'], msg['reply_to_message_id'], true);
     }*/
-    if (msg['via_bot_user_id'] != undefined && msg['via_bot_user_id'] > 0) {
-      extra.viaBotUserId = msg['via_bot_user_id'];
-    }
-    if (msg['restriction_reason'] != undefined && msg['restriction_reason'] != '') {
-      extra.restrictionReason = msg['restriction_reason'];
-    }
-    if (msg['reply_markup'] != undefined) {
-      extra.replyMarkup = msg['reply_markup'];
+    if (msg.reply_markup != undefined) {
+      extra.replyMarkup = msg.reply_markup;
     }
     const date = msg['date'];
     return new Message(id, conversation, sender, content, type, date, reply, extra);
@@ -192,7 +206,7 @@ export class Bot {
     } else if (msg.type == 'sticker') {
       this.bot.sendSticker(msg.conversation.id, this.getInputFile(msg.content));
     } else if (msg.type == 'forward') {
-      this.bot.forwardMessage(msg.extra.conversation, msg.conversation.id, +msg.extra.message)
+      this.bot.forwardMessage(msg.extra.conversation, msg.conversation.id, +msg.extra.message);
     }
 
     return null;

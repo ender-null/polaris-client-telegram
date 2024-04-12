@@ -13,6 +13,8 @@ export class Config {
   translation?: string;
   adminConversationId?: string;
   alertsConversationId?: string;
+  broadcastConversationId?: string;
+  broadcastReceiverId?: string;
   apiKeys?: ApiKeys;
 
   constructor() {
@@ -26,6 +28,8 @@ export class Config {
     this.translation = 'default';
     this.adminConversationId = null;
     this.alertsConversationId = null;
+    this.broadcastConversationId = null;
+    this.broadcastReceiverId = null;
     this.apiKeys = {
       telegramBotToken: null,
       telegramPhoneNumber: null,

@@ -24,8 +24,22 @@ process.on('exit', () => {
   logger.warn(`Exit process`);
 });
 
-// Create a bot that uses 'polling' to fetch new updates
 const telegramBot = new TelegramBot(process.env.TOKEN, { polling: true });
+
+telegramBot.on('channel_post', (message) => {
+  const msg = bot.convertMessage(message);
+  if (msg.conversation.id == bot.config.broadcastConversationId) {
+    bot.broadcast('all', bot.config.broadcastReceiverId, msg.content, msg.type, msg.extra);
+  } else {
+    const data: WSMessage = {
+      bot: 'polaris',
+      platform: 'telegram',
+      type: 'message',
+      message: msg,
+    };
+    ws.send(JSON.stringify(data));
+  }
+});
 
 telegramBot.on('message', (message) => {
   const msg = bot.convertMessage(message);

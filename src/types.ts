@@ -162,6 +162,20 @@ export interface Extra {
   replyMarkup?: any;
 }
 
+export class BroadcastMessage {
+  conversation: Conversation;
+  content: string;
+  type: string;
+  extra: Extra;
+
+  constructor(conversation: Conversation, content: string, type?: string, extra?: Extra) {
+    this.conversation = conversation;
+    this.content = content;
+    this.type = type;
+    this.extra = extra;
+  }
+}
+
 export interface WSData {
   bot: string;
   platform: string;
@@ -181,4 +195,14 @@ export interface WSMessage extends WSData {
 
 export interface WSPing extends WSData {
   type: 'ping';
+}
+
+export interface WSBroadcast extends WSData {
+  type: 'broadcast';
+  target: string | string[];
+  message: BroadcastMessage;
+}
+
+export interface WSCommandPayload {
+  [id: string]: string | number | boolean;
 }
