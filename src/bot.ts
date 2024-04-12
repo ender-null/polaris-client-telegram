@@ -168,7 +168,7 @@ export class Bot {
     if (msg.extra && msg.extra.format && msg.extra.format === 'HTML') {
       caption = htmlToMarkdown(caption);
     }
-    caption = caption.trim()
+    caption = caption?.trim()
     if (msg.type == 'text') {
       if (!msg.content || (typeof msg.content == 'string' && msg.content.length == 0)) {
         return null;
