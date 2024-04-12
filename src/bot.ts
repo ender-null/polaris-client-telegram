@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import TelegramBot, { ChatAction, ParseMode } from 'node-telegram-bot-api';
+import TelegramBot, { ChatAction } from 'node-telegram-bot-api';
 import { Conversation, Extra, Message, User, WSBroadcast, WSInit, WSPing } from './types';
 import { Config } from './config';
 import { htmlToMarkdown, isInt, logger } from './utils';
