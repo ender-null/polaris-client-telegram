@@ -236,7 +236,7 @@ export class Bot {
   async getInputFile(content: string): Promise<string | Stream | Buffer> {
     if (content.startsWith('/')) {
       const file = await fromBase64(content);
-      return Buffer.from(file.name);
+      return file.name;
     } else if (content.startsWith('http')) {
       return content;
     } else if (isInt(content)) {
