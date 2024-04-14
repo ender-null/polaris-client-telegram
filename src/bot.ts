@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import TelegramBot, { ChatAction } from 'node-telegram-bot-api';
 import { Conversation, Extra, Message, User, WSBroadcast, WSInit, WSPing } from './types';
 import { Config } from './config';
-import { htmlToMarkdown, isInt, logger } from './utils';
+import { fromBase64, htmlToMarkdown, isInt, logger } from './utils';
 import { Stream } from 'node:stream';
 
 export class Bot {
@@ -168,7 +168,7 @@ export class Bot {
     if (msg.extra && msg.extra.format && msg.extra.format === 'HTML') {
       caption = htmlToMarkdown(caption);
     }
-    caption = caption?.trim()
+    caption = caption?.trim();
     if (msg.type == 'text') {
       if (!msg.content || (typeof msg.content == 'string' && msg.content.length == 0)) {
         return null;
@@ -181,7 +181,7 @@ export class Bot {
       if (msg.extra && msg.extra.format && msg.extra.format === 'HTML') {
         text = htmlToMarkdown(text);
       }
-      text = text.trim()
+      text = text.trim();
       this.bot.sendMessage(msg.conversation.id, text, {
         parse_mode: 'Markdown',
         reply_markup: msg.extra?.replyMarkup,
@@ -189,43 +189,43 @@ export class Bot {
         disable_web_page_preview: !preview,
       });
     } else if (msg.type == 'photo') {
-      this.bot.sendPhoto(msg.conversation.id, this.getInputFile(msg.content), {
+      this.bot.sendPhoto(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
         parse_mode: 'Markdown',
         reply_to_message_id: msg.reply?.id as number,
       });
     } else if (msg.type == 'animation') {
-      this.bot.sendAnimation(msg.conversation.id, this.getInputFile(msg.content), {
+      this.bot.sendAnimation(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
         parse_mode: 'Markdown',
         reply_to_message_id: msg.reply?.id as number,
       });
     } else if (msg.type == 'audio') {
-      this.bot.sendAudio(msg.conversation.id, this.getInputFile(msg.content), {
+      this.bot.sendAudio(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
         parse_mode: 'Markdown',
         reply_to_message_id: msg.reply?.id as number,
       });
     } else if (msg.type == 'document') {
-      this.bot.sendDocument(msg.conversation.id, this.getInputFile(msg.content), {
+      this.bot.sendDocument(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
         parse_mode: 'Markdown',
         reply_to_message_id: msg.reply?.id as number,
       });
     } else if (msg.type == 'video') {
-      this.bot.sendVideo(msg.conversation.id, this.getInputFile(msg.content), {
+      this.bot.sendVideo(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
         parse_mode: 'Markdown',
         reply_to_message_id: msg.reply?.id as number,
       });
     } else if (msg.type == 'voice') {
-      this.bot.sendVoice(msg.conversation.id, this.getInputFile(msg.content), {
+      this.bot.sendVoice(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
         parse_mode: 'Markdown',
         reply_to_message_id: msg.reply?.id as number,
       });
     } else if (msg.type == 'sticker') {
-      this.bot.sendSticker(msg.conversation.id, this.getInputFile(msg.content));
+      this.bot.sendSticker(msg.conversation.id, await this.getInputFile(msg.content));
     } else if (msg.type == 'forward') {
       this.bot.forwardMessage(msg.extra.conversation, msg.conversation.id, +msg.extra.message);
     }
@@ -233,7 +233,7 @@ export class Bot {
     return null;
   }
 
-  getInputFile(content: string): string | Stream | Buffer {
+  async getInputFile(content: string): Promise<string | Stream | Buffer> {
     if (content.startsWith('/') || content.startsWith('C:\\')) {
       return Buffer.from(content);
     } else if (content.startsWith('http')) {
@@ -241,7 +241,8 @@ export class Bot {
     } else if (isInt(content)) {
       return content;
     } else {
-      return content;
+      const file = await fromBase64(content);
+      return Buffer.from(file.name);
     }
   }
 }

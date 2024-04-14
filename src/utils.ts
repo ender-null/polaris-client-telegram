@@ -1,5 +1,7 @@
 import winston, { createLogger, transports, format as winstonFormat } from 'winston';
 import 'winston-daily-rotate-file';
+import fs from 'fs';
+import tmp, { FileResult } from 'tmp';
 
 export const catchException = (exception: Error): Error => {
   logger.error(`Catch exception: ${exception.message}`);
@@ -42,6 +44,29 @@ export const isInt = (number: number | string): boolean => {
   }
   return !isNaN(parseFloat(number));
 };
+
+export const toBase64 = (filePath: string): Promise<string> =>
+  new Promise((resolve, reject) => {
+    fs.readFile(filePath, (err, data) => {
+      if (err) {
+        reject(err);
+      }
+      const base64String = data.toString('base64');
+      resolve(base64String);
+    });
+  });
+
+export const fromBase64 = (base64String): Promise<FileResult> =>
+  new Promise((resolve, reject) => {
+    const bufferData = Buffer.from(base64String, 'base64');
+    const file: FileResult = tmp.fileSync({ mode: 0o644 });
+    fs.writeFile(file.name, bufferData, (err) => {
+      if (err) {
+        reject(err);
+      }
+      resolve(file);
+    });
+  });
 
 export const loggerFormat = winstonFormat.printf(({ level, message, timestamp, ...metadata }) => {
   let msg = `${timestamp} [${level}]: ${message} `;
