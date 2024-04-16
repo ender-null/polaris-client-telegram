@@ -69,7 +69,8 @@ export class Bot {
       originalMessage: msg,
     };
 
-    const conversation = new Conversation(msg.chat.id, msg.chat.title);
+    const title = msg.chat.title || `${msg.chat.first_name} ${msg.chat.last_name}`
+    const conversation = new Conversation(msg.chat.id, title);
     const sender = msg.from
       ? new User(msg.from.id, msg.from.first_name, msg.from.last_name, msg.from.username, msg.from.is_bot)
       : conversation;
@@ -131,10 +132,10 @@ export class Bot {
       extra.caption = msg.caption;
     }
 
-    const reply: Message = null;
-    /*if (msg['reply_to_message_id'] != undefined && msg['reply_to_message_id'] > 0 && !ignoreReply) {
-      reply = await this.getMessage(msg['chat_id'], msg['reply_to_message_id'], true);
-    }*/
+    let reply: Message = null;
+    if (msg.reply_to_message) {
+      reply = this.convertMessage(msg.reply_to_message);
+    }
     if (msg.reply_markup != undefined) {
       extra.replyMarkup = msg.reply_markup;
     }
