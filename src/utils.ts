@@ -40,6 +40,26 @@ export const isInt = (number: number | string): boolean => {
   return !isNaN(parseFloat(number));
 };
 
+export const splitLargeMessage = (content: string, maxLength: number): string[] => {
+  const lineBreak = '\n';
+  const texts = [];
+  if (content) {
+    const lines = content.split(lineBreak);
+    let text = '';
+
+    lines.map((line) => {
+      if (text.length + line.length + lineBreak.length < maxLength) {
+        text += line + lineBreak;
+      } else {
+        texts.push(text);
+        text = line + lineBreak;
+      }
+    });
+    texts.push(text);
+  }
+  return texts;
+};
+
 export const toBase64 = (filePath): Promise<string> => {
   return new Promise((resolve, reject) => {
     fs.readFile(filePath, (err, data) => {

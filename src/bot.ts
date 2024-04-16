@@ -1,8 +1,8 @@
 import WebSocket from 'ws';
-import TelegramBot, { ChatAction } from 'node-telegram-bot-api';
+import TelegramBot, { ChatAction, ParseMode } from 'node-telegram-bot-api';
 import { Conversation, Extra, Message, User, WSBroadcast, WSInit, WSPing } from './types';
 import { Config } from './config';
-import { fromBase64, htmlToMarkdown, isInt, logger } from './utils';
+import { fromBase64, htmlToMarkdown, isInt, logger, splitLargeMessage } from './utils';
 import { Stream } from 'node:stream';
 
 export class Bot {
@@ -69,7 +69,7 @@ export class Bot {
       originalMessage: msg,
     };
 
-    const title = msg.chat.title || `${msg.chat.first_name} ${msg.chat.last_name}`
+    const title = msg.chat.title || `${msg.chat.first_name} ${msg.chat.last_name}`;
     const conversation = new Conversation(msg.chat.id, title);
     const sender = msg.from
       ? new User(msg.from.id, msg.from.first_name, msg.from.last_name, msg.from.username, msg.from.is_bot)
@@ -179,50 +179,59 @@ export class Bot {
         preview = msg.extra.preview;
       }
       let text = msg.content;
-      if (msg.extra && msg.extra.format && msg.extra.format === 'HTML') {
-        text = htmlToMarkdown(text);
-      }
       text = text.trim();
-      this.bot.sendMessage(msg.conversation.id, text, {
-        parse_mode: 'Markdown',
-        reply_markup: msg.extra?.replyMarkup,
-        reply_to_message_id: msg.reply?.id as number,
-        disable_web_page_preview: !preview,
-      });
+      if (text.length <= 4096) {
+        this.bot.sendMessage(msg.conversation.id, text, {
+          parse_mode: msg.extra.format as ParseMode,
+          reply_markup: msg.extra?.replyMarkup,
+          reply_to_message_id: msg.reply?.id as number,
+          disable_web_page_preview: !preview,
+        });
+      } else {
+        const texts = splitLargeMessage(text, 4096);
+        for (const split of texts) {
+          this.bot.sendMessage(msg.conversation.id, split, {
+            parse_mode: msg.extra.format as ParseMode,
+            reply_markup: msg.extra?.replyMarkup,
+            reply_to_message_id: msg.reply?.id as number,
+            disable_web_page_preview: !preview,
+          });
+        }
+      }
     } else if (msg.type == 'photo') {
       this.bot.sendPhoto(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
-        parse_mode: 'Markdown',
+        parse_mode: msg.extra.format as ParseMode,
         reply_to_message_id: msg.reply?.id as number,
       });
     } else if (msg.type == 'animation') {
       this.bot.sendAnimation(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
-        parse_mode: 'Markdown',
+        parse_mode: msg.extra.format as ParseMode,
         reply_to_message_id: msg.reply?.id as number,
       });
     } else if (msg.type == 'audio') {
       this.bot.sendAudio(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
-        parse_mode: 'Markdown',
+        parse_mode: msg.extra.format as ParseMode,
         reply_to_message_id: msg.reply?.id as number,
       });
     } else if (msg.type == 'document') {
       this.bot.sendDocument(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
-        parse_mode: 'Markdown',
+        parse_mode: msg.extra.format as ParseMode,
         reply_to_message_id: msg.reply?.id as number,
       });
     } else if (msg.type == 'video') {
       this.bot.sendVideo(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
-        parse_mode: 'Markdown',
+        parse_mode: msg.extra.format as ParseMode,
         reply_to_message_id: msg.reply?.id as number,
       });
     } else if (msg.type == 'voice') {
       this.bot.sendVoice(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
-        parse_mode: 'Markdown',
+        parse_mode: msg.extra.format as ParseMode,
         reply_to_message_id: msg.reply?.id as number,
       });
     } else if (msg.type == 'sticker') {
