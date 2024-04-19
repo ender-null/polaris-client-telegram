@@ -9,7 +9,7 @@ let ws: WebSocket;
 let pingInterval;
 
 logger.debug(`SERVER: ${process.env.SERVER}`);
-logger.debug(`TOKEN: ${process.env.TOKEN}`);
+logger.debug(`TELEGRAM_TOKEN: ${process.env.TELEGRAM_TOKEN}`);
 logger.debug(`CONFIG: ${process.env.CONFIG}`);
 
 const close = () => {
@@ -24,7 +24,7 @@ process.on('exit', () => {
   logger.warn(`Exit process`);
 });
 
-const telegramBot = new TelegramBot(process.env.TOKEN, { polling: true });
+const telegramBot = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
 
 telegramBot.on('channel_post', (message) => {
   const msg = bot.convertMessage(message);
