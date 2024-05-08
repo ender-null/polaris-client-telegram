@@ -30,7 +30,7 @@ jobs:
           node-version: 22
           registry-url: https://npm.pkg.github.com/
       - run: yarn install
-      - run: yarn run build
+      - run: yarn run build:bundle
       - run: node --experimental-sea-config sea-config.json
       - run: cp $(command -v node) client
       - run: npx postject client NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2

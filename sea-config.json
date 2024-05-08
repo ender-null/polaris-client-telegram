@@ -1,1 +1,1 @@
-{ "main": "build/src/client.js", "output": "sea-prep.blob" }
+{ "main": "build/client.js", "output": "sea-prep.blob" }

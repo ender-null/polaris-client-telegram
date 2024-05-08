@@ -90,7 +90,7 @@ const poll = () => {
       if (msg.type === 'message') {
         bot.sendMessage(msg.message);
       }
-    } catch (error) {
+    } catch (error: any) {
       catchException(error);
     }
   });
