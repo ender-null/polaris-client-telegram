@@ -1,8 +1,10 @@
 name: Node.js Single executable application
 
 on:
-  release:
-    types: [created]
+  push:
+    branches:
+      - main
+      - 'feature/**'
 
 jobs:
   build:
