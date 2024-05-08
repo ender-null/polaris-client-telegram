@@ -34,12 +34,15 @@ jobs:
           registry-url: https://npm.pkg.github.com/
       - run: yarn install
       - run: yarn run build:bundle
+      - run: |
+          EXECUTABLE_NAME="${IMAGE_NAME#*/}"
+          echo "EXECUTABLE_NAME=$EXECUTABLE_NAME" >> "$GITHUB_ENV"
       - run: node --experimental-sea-config sea-config.json
-      - run: cp $(command -v node) ${{ env.IMAGE_NAME }}
-      - run: npx postject ${{ env.IMAGE_NAME }} NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
+      - run: cp $(command -v node) ${{ env.EXECUTABLE_NAME }}
+      - run: npx postject ${{ env.EXECUTABLE_NAME }} NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.IMAGE_NAME }}
-          path: ${{ env.IMAGE_NAME }}
+          name: ${{ env.EXECUTABLE_NAME }}
+          path: ${{ env.EXECUTABLE_NAME }}
