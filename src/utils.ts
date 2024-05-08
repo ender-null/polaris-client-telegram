@@ -45,7 +45,7 @@ export const isInt = (number: number | string): boolean => {
 
 export const splitLargeMessage = (content: string, maxLength: number): string[] => {
   const lineBreak = '\n';
-  const texts = [];
+  const texts: string[] = [];
   if (content) {
     const lines = content.split(lineBreak);
     let text = '';
@@ -99,15 +99,14 @@ export const loggerFormat = winstonFormat.printf(({ level, message, timestamp, .
 });
 
 export const transport = new winston.transports.DailyRotateFile({
-  dirname: 'logs',
-  filename: 'polaris-client-telegram-%DATE%.log',
+  dirname: '/var/log/polaris',
+  filename: 'client-telegram-%DATE%.log',
   datePattern: 'YYYY-MM-DD-HH',
   zippedArchive: true,
   maxSize: '20m',
   maxFiles: '7d',
 });
 
-// Configure logger
 export const logger = createLogger({
   level: 'info',
   format: winstonFormat.combine(winstonFormat.timestamp(), winstonFormat.json()),

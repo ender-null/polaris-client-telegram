@@ -24,12 +24,12 @@ process.on('exit', () => {
   logger.warn(`Exit process`);
 });
 
-const telegramBot = new TelegramBot(process.env.TELEGRAM_TOKEN, { polling: true });
+const telegramBot = new TelegramBot(String(process.env.TELEGRAM_TOKEN), { polling: true });
 
 telegramBot.on('channel_post', (message) => {
   const msg = bot.convertMessage(message);
   if (msg.conversation.id == bot.config.broadcastConversationId) {
-    bot.broadcast('all', bot.config.broadcastReceiverId, msg.content, msg.type, msg.extra);
+    bot.broadcast('all', String(bot.config.broadcastReceiverId), msg.content, msg.type, msg.extra);
   } else {
     const data: WSMessage = {
       bot: 'polaris',
@@ -54,7 +54,7 @@ telegramBot.on('message', (message) => {
 
 const poll = () => {
   logger.info('Starting polling...');
-  ws = new WebSocket(process.env.SERVER);
+  ws = new WebSocket(String(process.env.SERVER));
   bot = new Bot(ws, telegramBot);
 
   clearInterval(pingInterval);

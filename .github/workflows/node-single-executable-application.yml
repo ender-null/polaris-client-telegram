@@ -6,12 +6,15 @@ on:
       - main
       - 'feature/**'
 
+env:
+  IMAGE_NAME: ${{ github.repository }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
       - run: yarn install
@@ -25,17 +28,18 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v3
+      - uses: actions/setup-node@v4
         with:
           node-version: 22
           registry-url: https://npm.pkg.github.com/
       - run: yarn install
       - run: yarn run build:bundle
       - run: node --experimental-sea-config sea-config.json
-      - run: cp $(command -v node) client
-      - run: npx postject client NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
+      - run: cp $(command -v node) ${{ env.IMAGE_NAME }}
+      - run: npx postject ${{ env.IMAGE_NAME }} NODE_SEA_BLOB sea-prep.blob --sentinel-fuse NODE_SEA_FUSE_fce680ab2cc467b6e072b8b5df1996b2
 
-      - uses: actions/upload-artifact@v2
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          name: client
-          path: client
+          name: ${{ env.IMAGE_NAME }}
+          path: ${{ env.IMAGE_NAME }}
