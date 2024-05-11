@@ -20,7 +20,7 @@ process.on('exit', () => {
   logger.warn(`Exit process`);
 });
 
-if (!process.env.SERVER || process.env.TELEGRAM_TOKEN || process.env.CONFIG) {
+if (!process.env.SERVER || !process.env.TELEGRAM_TOKEN || !process.env.CONFIG) {
   if (!process.env.SERVER) {
     logger.warn(`Missing env variable SERVER`);
   }
