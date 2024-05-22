@@ -35,7 +35,7 @@
   },
   "type": "commonjs",
   "engines": {
-    "node": ">=12"
+    "node": ">=18"
   },
   "dependencies": {
     "node-telegram-bot-api": "^0.65.1",

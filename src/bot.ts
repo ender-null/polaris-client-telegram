@@ -1,6 +1,6 @@
 import WebSocket from 'ws';
-import TelegramBot, { ChatAction, ParseMode } from 'node-telegram-bot-api';
-import { Conversation, Extra, Message, User, WSBroadcast, WSInit, WSPing } from './types';
+import TelegramBot, { BotCommand, ChatAction, ParseMode } from 'node-telegram-bot-api';
+import { Conversation, Extra, Message, User, WSBroadcast, WSCommand, WSInit, WSPing } from './types';
 import { Config } from './config';
 import { fromBase64, isInt, logger, splitLargeMessage } from './utils';
 import { Stream } from 'node:stream';
@@ -252,6 +252,20 @@ export class Bot {
       return content;
     } else {
       return content;
+    }
+  }
+
+  async handleCommand(msg: WSCommand): Promise<void> {
+    if (msg.method === 'setCommands') {
+      const commands: BotCommand[] = (msg.payload.commands as any[]).map((command) => {
+        return {
+          command: command.command,
+          description: command.description,
+        };
+      });
+      await this.bot.setMyCommands(commands);
+    } else {
+      logger.error('Unsupported method');
     }
   }
 }
