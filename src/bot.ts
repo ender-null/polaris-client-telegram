@@ -200,39 +200,45 @@ export class Bot {
     } else if (msg.type == 'photo') {
       this.bot.sendPhoto(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
+        show_caption_above_media: msg.extra.showCaptionAboveMedia,
         parse_mode: msg.extra.format as ParseMode,
         reply_to_message_id: msg.reply?.id as number,
-      });
+      } as any);
     } else if (msg.type == 'animation') {
       this.bot.sendAnimation(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
+        show_caption_above_media: msg.extra.showCaptionAboveMedia,
         parse_mode: msg.extra.format as ParseMode,
         reply_to_message_id: msg.reply?.id as number,
-      });
+      } as any);
     } else if (msg.type == 'audio') {
       this.bot.sendAudio(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
+        show_caption_above_media: msg.extra.showCaptionAboveMedia,
         parse_mode: msg.extra.format as ParseMode,
         reply_to_message_id: msg.reply?.id as number,
-      });
+      } as any);
     } else if (msg.type == 'document') {
       this.bot.sendDocument(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
+        show_caption_above_media: msg.extra.showCaptionAboveMedia,
         parse_mode: msg.extra.format as ParseMode,
         reply_to_message_id: msg.reply?.id as number,
-      });
+      } as any);
     } else if (msg.type == 'video') {
       this.bot.sendVideo(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
+        show_caption_above_media: msg.extra.showCaptionAboveMedia,
         parse_mode: msg.extra.format as ParseMode,
         reply_to_message_id: msg.reply?.id as number,
-      });
+      } as any);
     } else if (msg.type == 'voice') {
       this.bot.sendVoice(msg.conversation.id, await this.getInputFile(msg.content), {
         caption,
+        show_caption_above_media: msg.extra.showCaptionAboveMedia,
         parse_mode: msg.extra.format as ParseMode,
         reply_to_message_id: msg.reply?.id as number,
-      });
+      } as any);
     } else if (msg.type == 'sticker') {
       this.bot.sendSticker(msg.conversation.id, await this.getInputFile(msg.content));
     } else if (msg.type == 'forward') {

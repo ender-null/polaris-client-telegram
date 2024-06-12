@@ -160,6 +160,7 @@ export interface Extra {
   viaBotUserId?: number | string;
   restrictionReason?: string;
   replyMarkup?: any;
+  showCaptionAboveMedia?: boolean;
 }
 
 export class BroadcastMessage {
