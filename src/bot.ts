@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import TelegramBot, { BotCommand, ChatAction, ParseMode } from 'node-telegram-bot-api';
 import { Conversation, Extra, Message, User, WSBroadcast, WSCommand, WSInit, WSPing } from './types';
 import { Config } from './config';
-import { fromBase64, isInt, logger, splitLargeMessage } from './utils';
+import { base64regex, fromBase64, isInt, logger, splitLargeMessage } from './utils';
 import { Stream } from 'node:stream';
 
 export class Bot {
@@ -249,7 +249,7 @@ export class Bot {
   }
 
   async getInputFile(content: string): Promise<string | Stream | Buffer> {
-    if (content.startsWith('/')) {
+    if (base64regex.test(content)) {
       const file = await fromBase64(content);
       return file.name;
     } else if (content.startsWith('http')) {
