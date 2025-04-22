@@ -63,7 +63,7 @@ telegramBot.on('message', (message) => {
 
 const poll = () => {
   logger.info('Starting polling...');
-  ws = new WebSocket(String(process.env.SERVER));
+  ws = new WebSocket('ws://localhost:8080');
   bot = new Bot(ws, telegramBot);
 
   clearInterval(pingInterval);

@@ -24,9 +24,13 @@ export const htmlToMarkdown = (text: string): string => {
     text = text.replace(/<u>(.*?)<\/u>/gim, '~$1~');
     text = text.replace(/<code>(.*?)<\/code>/gim, '`$1`');
     text = text.replace(/<pre>(.*?)<\/pre>/gim, '```$1```');
+    text = text.replace(/<blockquote expandable>([\s\S]*?)<\/blockquote>/gim, (_, p1) => {
+      return '**> ' + p1.replace(/\r?\n/g, '\n> ').trim();
+    });
     text = text.replace(/<blockquote>([\s\S]*?)<\/blockquote>/gim, (_, p1) => {
       return '> ' + p1.replace(/\r?\n/g, '\n> ').trim();
     });
+    text = text.replace(/<tg-emoji emoji-id="(.*?)">"(.*?)"<\/tg-emoji>/gim, '![$2](tg://emoji?id=$1)');
 
     text = text.replace(/&lt;/gim, '<');
     text = text.replace(/&gt;/gim, '>');
@@ -89,6 +93,8 @@ export const fromBase64 = (base64String): Promise<FileResult> => {
     });
   });
 };
+
+export const base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
 
 export const loggerFormat = winstonFormat.printf(({ level, message, timestamp, ...metadata }) => {
   let msg = `${timestamp} [${level}]: ${message} `;
