@@ -1,5 +1,5 @@
-import WebSocket from 'ws';
 import TelegramBot from 'node-telegram-bot-api';
+import WebSocket from 'ws';
 import { Bot } from './bot';
 import { WSMessage } from './types';
 import { catchException, logger } from './utils';
@@ -63,7 +63,7 @@ telegramBot.on('message', (message) => {
 
 const poll = () => {
   logger.info('Starting polling...');
-  ws = new WebSocket('ws://localhost:8080');
+  ws = new WebSocket(process.env.SERVER);
   bot = new Bot(ws, telegramBot);
 
   clearInterval(pingInterval);
