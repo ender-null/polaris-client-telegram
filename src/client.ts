@@ -31,6 +31,8 @@ if (!process.env.SERVER || !process.env.TELEGRAM_TOKEN || !process.env.CONFIG) {
     logger.warn(`Missing env variable TELEGRAM_TOKEN`);
   }
   close();
+} else if (!process.env.LOCAL_SERVER) {
+  logger.warn(`Missing env variable LOCAL_SERVER`);
 }
 
 const telegramBot = new TelegramBot(String(process.env.TELEGRAM_TOKEN), { polling: true });
@@ -61,9 +63,42 @@ telegramBot.on('message', (message) => {
   ws.send(JSON.stringify(data));
 });
 
-const poll = () => {
+const connectWebSocket = (url: string): Promise<WebSocket> => {
+  return new Promise((resolve, reject) => {
+    const socket = new WebSocket(url);
+
+    const timeout = setTimeout(() => {
+      socket.terminate();
+      reject(new Error('WebSocket connection timed out'));
+    }, 5000);
+
+    socket.on('open', () => {
+      clearTimeout(timeout);
+      resolve(socket);
+    });
+
+    socket.on('error', (err) => {
+      clearTimeout(timeout);
+      reject(err);
+    });
+  });
+};
+
+const poll = async () => {
   logger.info('Starting polling...');
-  ws = new WebSocket(process.env.SERVER);
+  try {
+    ws = await connectWebSocket(process.env.SERVER);
+    logger.info('Connected to public WebSocket');
+  } catch (err) {
+    logger.warn('Public WS failed, trying local:', err);
+    try {
+      ws = await connectWebSocket(process.env.LOCAL_SERVER);
+      logger.info('Connected to local WebSocket');
+    } catch (localErr) {
+      logger.error('Both public and local WebSockets failed', localErr);
+      process.exit(1);
+    }
+  }
   bot = new Bot(ws, telegramBot);
 
   clearInterval(pingInterval);
