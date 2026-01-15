@@ -1,6 +1,17 @@
 import WebSocket from 'ws';
 import TelegramBot, { BotCommand, ChatAction, ParseMode } from 'node-telegram-bot-api';
-import { Conversation, Extra, Message, User, WSBroadcast, WSCommand, WSInit, WSPing } from './types';
+import {
+  Conversation,
+  Extra,
+  Message,
+  User,
+  WSBroadcast,
+  WSCommand,
+  WSCommandResponse,
+  WSCommandResponseBody,
+  WSInit,
+  WSPing,
+} from './types';
 import { Config } from './config';
 import { base64regex, fromBase64, isInt, logger, splitLargeMessage } from './utils';
 import { Stream } from 'node:stream';
@@ -261,17 +272,63 @@ export class Bot {
     }
   }
 
+  async sendCommandResponse(method: string, response: WSCommandResponseBody, requestId: string): Promise<void> {
+    const data: WSCommandResponse = {
+      bot: this.user.username,
+      platform: 'telegram',
+      type: 'command_response',
+      requestId,
+      method,
+      response,
+    };
+    this.websocket.send(JSON.stringify(data, null, 4));
+  }
+
   async handleCommand(msg: WSCommand): Promise<void> {
-    if (msg.method === 'setCommands') {
-      const commands: BotCommand[] = (msg.payload.commands as any[]).map((command) => {
-        return {
-          command: command.command,
-          description: command.description,
-        };
-      });
-      await this.bot.setMyCommands(commands);
-    } else {
-      logger.error('Unsupported method');
+    let success = true;
+    let error = null;
+    let data = null;
+    try {
+      if (msg.method === 'setCommands') {
+        const commands: BotCommand[] = (msg.payload.commands as any[]).map((command) => {
+          return {
+            command: command.command,
+            description: command.description,
+          };
+        });
+        success = await this.bot.setMyCommands(commands);
+      } else if (msg.method === 'getChatAdministrators') {
+        const administrators = await this.bot.getChatAdministrators(msg.payload.conversationId as string);
+        data = administrators.map((administrator) => {
+          return {
+            id: administrator.user.id,
+            firstName: administrator.user.first_name,
+            lastName: administrator.user.last_name,
+            username: administrator.user.username,
+          };
+        });
+        success = true;
+      } else if (msg.method === 'kickConversationMember') {
+        success = await this.bot.banChatMember(msg.payload.conversationId as string, msg.payload.userId as number, {
+          until_date: new Date().getTime(),
+        });
+      } else {
+        logger.error(`Unsupported method: ${msg.method}`);
+        return;
+      }
+    } catch (e: any) {
+      success = false;
+      error = e;
     }
+
+    await this.sendCommandResponse(
+      msg.method,
+      {
+        success,
+        error,
+        data,
+      },
+      msg.requestId,
+    );
   }
 }
