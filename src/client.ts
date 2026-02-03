@@ -61,9 +61,10 @@ telegramBot.on('message', (message) => {
   ws.send(JSON.stringify(data));
 });
 
-const poll = () => {
+const poll = async () => {
   logger.info('Starting polling...');
-  ws = new WebSocket(process.env.SERVER);
+  const userId = (await telegramBot.getMe()).id;
+  ws = new WebSocket(`${process.env.SERVER}?platform=telegram&accountId=${userId}`);
   bot = new Bot(ws, telegramBot);
 
   clearInterval(pingInterval);
