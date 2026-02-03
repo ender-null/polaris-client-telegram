@@ -33,6 +33,7 @@ if (!process.env.SERVER || !process.env.TELEGRAM_TOKEN || !process.env.CONFIG) {
   close();
 }
 
+const serverUrl = process.env.SERVER;
 const telegramBot = new TelegramBot(String(process.env.TELEGRAM_TOKEN), { polling: true });
 
 telegramBot.on('channel_post', (message) => {
@@ -64,7 +65,7 @@ telegramBot.on('message', (message) => {
 const poll = async () => {
   logger.info('Starting polling...');
   const userId = (await telegramBot.getMe()).id;
-  ws = new WebSocket(`${process.env.SERVER}?platform=telegram&accountId=${userId}`);
+  ws = new WebSocket(`${serverUrl}?platform=telegram&accountId=${userId}`);
   bot = new Bot(ws, telegramBot);
 
   clearInterval(pingInterval);

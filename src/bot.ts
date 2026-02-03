@@ -2,6 +2,7 @@ import WebSocket from 'ws';
 import TelegramBot, { BotCommand, ChatAction, ParseMode } from 'node-telegram-bot-api';
 import {
   Conversation,
+  ConversationType,
   Extra,
   Message,
   User,
@@ -83,7 +84,11 @@ export class Bot {
     };
 
     const title = msg.chat.title || `${msg.chat.first_name} ${msg.chat.last_name}`;
-    const conversation = new Conversation(msg.chat.id, title);
+    let conversationType = msg.chat.type as ConversationType;
+    if (msg.chat.type == 'supergroup') {
+      conversationType = 'group';
+    }
+    const conversation = new Conversation(msg.chat.id, title, conversationType);
     const sender = msg.from
       ? new User(msg.from.id, msg.from.first_name, msg.from.last_name, msg.from.username, msg.from.is_bot)
       : conversation;
