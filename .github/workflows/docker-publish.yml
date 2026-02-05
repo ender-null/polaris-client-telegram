@@ -172,7 +172,7 @@ jobs:
 
             docker stop ${{ env.CONTAINER_NAME }}-arcturus
             docker rm ${{ env.CONTAINER_NAME }}-arcturus
-            docker run -e SERVER=${{ env.SERVER_ARCTURUS }} -e TELEGRAM_TOKEN=${{ env.TELEGRAM_TOKEN_ARCTURUS }} -e MONGODB_URI=${{ env.MONGODB_URI }} -v /var/log/polaris:/var/log/polaris -e TZ=Europe/Madrid -ti -d --restart unless-stopped --name ${{ env.CONTAINER_NAME }}-arcturus ghcr.io/${{ github.repository }}:${{ env.TAG }}
+            docker run -e SERVER=${{ env.SERVER_ARCTURUS }} -e CONFIG='${{ env.CONFIG }}' -e TELEGRAM_TOKEN=${{ env.TELEGRAM_TOKEN_ARCTURUS }} -e MONGODB_URI=${{ env.MONGODB_URI }} -v /var/log/polaris:/var/log/polaris -e TZ=Europe/Madrid -ti -d --restart unless-stopped --name ${{ env.CONTAINER_NAME }}-arcturus ghcr.io/${{ github.repository }}:${{ env.TAG }}
 
       - name: Generate summary
         id: generate-summary
