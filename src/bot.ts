@@ -346,6 +346,11 @@ export class Bot {
         description: intent.description,
       });
     }
-    this.bot.setMyCommands(commands);
+
+    if (commands.length > 0) {
+      await this.bot.setMyCommands(commands);
+    } else {
+      await this.bot.deleteMyCommands();
+    }
   }
 }
