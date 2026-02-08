@@ -104,6 +104,8 @@ const poll = async () => {
         bot.sendMessage(msg.message);
       } else if (msg.type === 'command') {
         bot.handleCommand(msg);
+      } else if (msg.type === 'intents') {
+        bot.handleIntents(msg.intents);
       }
     } catch (error: any) {
       catchException(error);

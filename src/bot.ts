@@ -5,6 +5,7 @@ import {
   ConversationType,
   Extra,
   Message,
+  PluginIntent,
   User,
   WSBroadcast,
   WSCommand,
@@ -335,5 +336,16 @@ export class Bot {
       },
       msg.requestId,
     );
+  }
+
+  async handleIntents(intents: PluginIntent[]): Promise<void> {
+    const commands: BotCommand[] = [];
+    for (const intent of intents) {
+      commands.push({
+        command: intent.id,
+        description: intent.description,
+      });
+    }
+    this.bot.setMyCommands(commands);
   }
 }
