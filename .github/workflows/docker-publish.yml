@@ -9,9 +9,9 @@ on:
   push:
     branches:
       - main
-      - 'feature/**'
+      - "feature/**"
     # Publish semver tags as releases.
-    tags: ['v*.*.*']
+    tags: ["v*.*.*"]
   pull_request:
     branches:
       - main
@@ -42,7 +42,7 @@ jobs:
         if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@v3.3.0
         with:
-          cosign-release: 'v2.2.2'
+          cosign-release: "v2.2.2"
 
       # Set up BuildKit Docker container builder to be able to build
       # multi-platform images and export cache
@@ -149,10 +149,9 @@ jobs:
           USERNAME: op://end.works/end.works/username
           KEY: op://end.works/SSH Key/private key
           FINGERPRINT: op://end.works/SSH Key/fingerprint
-          SERVER: op://end.works/Peto-tan Config/server
+          SERVER: op://end.works/Arcturus Config/server
           CONFIG: op://end.works/Peto-tan Config/config telegram
           TELEGRAM_TOKEN: op://end.works/Peto-tan Config/telegram token
-          MONGODB_URI: op://end.works/Peto-tan Config/mongodb uri
 
       - name: Run container on host
         uses: appleboy/ssh-action@v1.0.3
@@ -165,7 +164,7 @@ jobs:
             docker pull ghcr.io/${{ github.repository }}:${{ env.TAG }}
             docker stop ${{ env.CONTAINER_NAME }}
             docker rm ${{ env.CONTAINER_NAME }}
-            docker run -e SERVER=${{ env.SERVER }} -e CONFIG='${{ env.CONFIG }}' -e TELEGRAM_TOKEN=${{ env.TELEGRAM_TOKEN }} -e MONGODB_URI=${{ env.MONGODB_URI }} -v /var/log/polaris:/var/log/polaris -e TZ=Europe/Madrid -ti -d --restart unless-stopped --name ${{ env.CONTAINER_NAME }} ghcr.io/${{ github.repository }}:${{ env.TAG }}
+            docker run -e SERVER=${{ env.SERVER }} -e CONFIG='${{ env.CONFIG }}' -e TELEGRAM_TOKEN=${{ env.TELEGRAM_TOKEN }} -v /var/log/polaris:/var/log/polaris -e TZ=Europe/Madrid -ti -d --restart unless-stopped --name ${{ env.CONTAINER_NAME }} ghcr.io/${{ github.repository }}:${{ env.TAG }}
 
       - name: Generate summary
         id: generate-summary
