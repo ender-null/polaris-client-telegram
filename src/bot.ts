@@ -1,5 +1,7 @@
-import WebSocket from 'ws';
 import TelegramBot, { BotCommand, ChatAction, ParseMode } from 'node-telegram-bot-api';
+import { Stream } from 'node:stream';
+import WebSocket from 'ws';
+import { Config } from './config';
 import {
   Conversation,
   ConversationType,
@@ -14,9 +16,7 @@ import {
   WSInit,
   WSPing,
 } from './types';
-import { Config } from './config';
 import { base64regex, fromBase64, isInt, logger, splitLargeMessage } from './utils';
-import { Stream } from 'node:stream';
 
 export class Bot {
   user: User;
@@ -266,7 +266,7 @@ export class Bot {
   }
 
   async getInputFile(content: string): Promise<string | Stream | Buffer> {
-    if (base64regex.test(content)) {
+    if (base64regex.test(content) || content.startsWith('data:')) {
       const file = await fromBase64(content);
       return file.name;
     } else if (content.startsWith('http')) {

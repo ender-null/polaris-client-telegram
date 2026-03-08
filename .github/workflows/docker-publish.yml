@@ -149,6 +149,8 @@ jobs:
           USERNAME: op://end.works/end.works/username
           KEY: op://end.works/SSH Key/private key
           FINGERPRINT: op://end.works/SSH Key/fingerprint
+          CF_ACCESS_CLIENT_ID: op://end.works/Cloudflare Access/CF-Access-Client-Id
+          CF_ACCESS_CLIENT_SECRET: op://end.works/Cloudflare Access/CF-Access-Client-Secret
           SERVER: op://end.works/Arcturus Config/server
           CONFIG: op://end.works/Peto-tan Config/config telegram
           TELEGRAM_TOKEN: op://end.works/Peto-tan Config/telegram token
@@ -164,7 +166,7 @@ jobs:
             docker pull ghcr.io/${{ github.repository }}:${{ env.TAG }}
             docker stop ${{ env.CONTAINER_NAME }}
             docker rm ${{ env.CONTAINER_NAME }}
-            docker run -e SERVER=${{ env.SERVER }} -e CONFIG='${{ env.CONFIG }}' -e TELEGRAM_TOKEN=${{ env.TELEGRAM_TOKEN }} -v /var/log/polaris:/var/log/polaris -e TZ=Europe/Madrid -ti -d --restart unless-stopped --name ${{ env.CONTAINER_NAME }} ghcr.io/${{ github.repository }}:${{ env.TAG }}
+            docker run -e SERVER=${{ env.SERVER }} -e CONFIG='${{ env.CONFIG }}' -e TELEGRAM_TOKEN=${{ env.TELEGRAM_TOKEN }} -e MONGODB_URI=${{ env.MONGODB_URI }} -e CF_ACCESS_CLIENT_ID=${{ env.CF_ACCESS_CLIENT_ID }} -e CF_ACCESS_CLIENT_SECRET=${{ env.CF_ACCESS_CLIENT_SECRET }} -v /var/log/polaris:/var/log/polaris -e TZ=Europe/Madrid -ti -d --restart unless-stopped --name ${{ env.CONTAINER_NAME }} ghcr.io/${{ github.repository }}:${{ env.TAG }}
 
       - name: Generate summary
         id: generate-summary

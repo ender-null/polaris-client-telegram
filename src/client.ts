@@ -65,7 +65,12 @@ telegramBot.on('message', (message) => {
 const poll = async () => {
   logger.info('Starting polling...');
   const userId = (await telegramBot.getMe()).id;
-  ws = new WebSocket(`${serverUrl}?platform=telegram&accountId=${userId}`);
+  ws = new WebSocket(`${serverUrl}?platform=telegram&accountId=${userId}`, {
+    headers: {
+      'CF-Access-Client-Id': process.env.CF_ACCESS_CLIENT_ID,
+      'CF-Access-Client-Secret': process.env.CF_ACCESS_CLIENT_SECRET,
+    },
+  });
   bot = new Bot(ws, telegramBot);
 
   clearInterval(pingInterval);
